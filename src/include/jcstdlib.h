@@ -9,6 +9,9 @@
 // nullptr keyword coming in C23, for older versions use a macro.
 #if __STDC_VERSION__ < 202311L
 #define nullptr (void *)0
+#define bool _Bool
+#define true !0
+#define false 0
 #else
 #define NULL (void *)0
 #endif

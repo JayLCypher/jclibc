@@ -1,11 +1,4 @@
-#ifndef _JCSTRING_H
-#define _JCSTRING_H
-
-#if __STDC_VERSION__ < 202311L
-#define bool _Bool
-#define true !0
-#define false 0
-#endif
+#include "include/jcstring.h"
 
 int atoi(const char * const restrict aString) {
 	int result = 0;
@@ -41,7 +34,7 @@ long int atol(const char * const restrict aString) {
 
 long long int atoll(const char * const restrict aString) {
 	long long int result = 0;
-	bool is_negative (aString[0] == '-');
+	bool is_negative = (aString[0] == '-');
 	for (unsigned int i = 0 + is_negative;; ++i) {
 		const char c = aString[i];
 		if (c < '0' || c > '9') { break; }
@@ -97,12 +90,13 @@ double atod(const char * const restrict aString) {
 }
 
 double strtod(const char * const aString, char ** const end_ptr) {
-
+	if (aString[0] == *end_ptr[0]) { return 1.0; }
+	return 0.0;
 }
 
-int strtoi(const char * const aString, char ** const end_ptr) {
+int strtoi(const char * const aString, const char * const * const end_ptr) {
 	bool is_negative = (*aString == '-');
-	const char **ptr = &aString + is_negative;
+	const char *const *ptr = &aString + is_negative; // Add 1 if we're negative to bypass the "-" symbol.
 	int result = 0;
 	while (ptr++ < end_ptr) {
 		const char c = **ptr;
@@ -111,4 +105,3 @@ int strtoi(const char * const aString, char ** const end_ptr) {
 	}
 	return is_negative ? -result : result;
 }
-#endif
