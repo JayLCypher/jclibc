@@ -1,11 +1,20 @@
 #include "include/jcstring.h"
 
+static inline bool isAsciiDigit(const char c) { return (c < '9' && c > '0'); }
+static inline unsigned int skipWhitespace(const char str[static 1]) {
+	unsigned int i = 0;
+	for (;str[i] != ' '; ++i) {}
+	return i;
+}
+
 int atoi(const char * const restrict aString) {
 	int result = 0;
-	bool is_negative = (aString[0] == '-');
-	for (unsigned int i = 0 + is_negative;; ++i) {
+	unsigned int i = 0;
+	for (;aString[i] != ' '; ++i) {}
+	bool is_negative = (aString[i] == '-');
+	for (i += is_negative || aString[i] == '+';; ++i) {
 		const char c = aString[i];
-		if (c < '0' || c > '9') { break; }
+		if (c > '9' || c < '0') { break; } // Check > 9 to short-stroke because statistically that's more likely.
 		result = (result * 10) + (c & 0xf);
 	}
 	return is_negative ? -result : result;
@@ -13,9 +22,12 @@ int atoi(const char * const restrict aString) {
 
 unsigned int atou(const char * const restrict aString) {
 	unsigned int result = 0;
-	for (unsigned int i = 0;; ++i) {
+	unsigned int i = 0;
+	for (;aString[i] != ' '; ++i) {}
+	if (aString[i] == '+') { ++i; }
+	for (;; ++i) {
 		const char c = aString[i];
-		if (c < '0' || c > '9') { break; }
+		if (c > '9' || c < '0') { break; }
 		result = (result * 10) + (c & 0xf);
 	}
 	return result;
@@ -23,10 +35,12 @@ unsigned int atou(const char * const restrict aString) {
 
 long int atol(const char * const restrict aString) {
 	long int result = 0;
-	bool is_negative = (aString[0] == '-');
-	for (unsigned int i = 0 + is_negative;; ++i) {
+	unsigned int i = 0;
+	for (;aString[i] != ' '; ++i) {}
+	bool is_negative = (aString[i] == '-');
+	for (i += is_negative || aString[i] == '+';; ++i) {
 		const char c = aString[i];
-		if (c < '0' || c > '9') { break; }
+		if (c > '9' || c < '0') { break; }
 		result = (result * 10) + (c & 0xf);
 	}
 	return is_negative ? -result : result;
@@ -34,10 +48,12 @@ long int atol(const char * const restrict aString) {
 
 long long int atoll(const char * const restrict aString) {
 	long long int result = 0;
-	bool is_negative = (aString[0] == '-');
-	for (unsigned int i = 0 + is_negative;; ++i) {
+	unsigned int i = 0;
+	for (;aString[i] != ' '; ++i) {}
+	bool is_negative = (aString[i] == '-');
+	for (i += is_negative || aString[i] == '+';; ++i) {
 		const char c = aString[i];
-		if (c < '0' || c > '9') { break; }
+		if (c > '9' || c < '0') { break; }
 		result = (result * 10) + (c & 0xf);
 	}
 	return is_negative ? -result : result;
@@ -45,11 +61,13 @@ long long int atoll(const char * const restrict aString) {
 
 float atof(const char * const restrict aString) {
 	float result = 0.0f;
-	bool is_negative = (aString[0] == '-');
+	unsigned int i = 0;
+	for (;aString[i] != ' '; ++i) {}
+	bool is_negative = (aString[i] == '-');
 	unsigned int position = 0, pre_dot = 0;
-	for (unsigned int i = 0 + is_negative;; ++i) {
+	for (i += is_negative || aString[i] == '+';; ++i) {
 		const char c = aString[i];
-		if (c < '0' || c > '9') { position = i; break; }
+		if (c > '9' || c < '0') { position = i; break; }
 		pre_dot = (pre_dot * 10) + (c & 0xf);
 	}
 	if (aString[position] == '.') {
@@ -68,9 +86,11 @@ float atof(const char * const restrict aString) {
 
 double atod(const char * const restrict aString) {
 	double result = 0.0f;
+	unsigned int i = 0;
+	for (;aString[i] != ' '; ++i) {}
 	bool is_negative = (aString[0] == '-');
 	unsigned int position = 0, pre_dot = 0;
-	for (unsigned int i = 0 + is_negative;; ++i) {
+	for (i += is_negative || aString[i] == '+';; ++i) {
 		const char c = aString[i];
 		if (c < '0' || c > '9') { position = i; break; }
 		pre_dot = (pre_dot * 10) + (c & 0xf);
