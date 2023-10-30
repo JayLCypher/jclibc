@@ -2,17 +2,20 @@
 #ifndef __JCLIBC_HASHMAP_H
 #define __JCLIBC_HASHMAP_H
 
-#if __STDC_VERSION__ < 202311L
-#include <stdbool.h>
-#define nullptr (void *)0
-
-#endif
-
 #include <stddef.h>
 #include <stdint.h>
 
-struct hashmap;
+#if __STDC_VERSION__ < 202311L
+#include "./jcstddef.h"
+#endif
+
 typedef struct hashmap map;
+struct hashmap {
+	size_t count;
+	size_t max;
+	unsigned int (*hash_func)();
+	void **buckets;
+};
 
 map map_create();
 void map_destroy(map * const m);

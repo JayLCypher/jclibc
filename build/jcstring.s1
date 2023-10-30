@@ -1,0 +1,10 @@
+isAsciiDigit call:[return] noreturn:[return]
+skipWhitespace
+atoi
+atou
+atol
+atoll
+atof
+atod
+strtod
+strtoi

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<analyzerinfo hash="6009143824254943819">
+  <FileInfo check="Bounds checking">
+    <array-index>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:16:8" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="113" col="6" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:16:8" my-argnr="2" my-argname="end_ptr" file="/home/john/Github/jclibc/src/jcstring.c" line="113" col="21" value="0"/>
+    </array-index>
+  </FileInfo>
+  <FileInfo check="Null pointer">
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/jcstring.c:4:28" my-argnr="1" my-argname="str" file="/home/john/Github/jclibc/src/jcstring.c" line="6" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:10:5" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="13" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:11:14" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="26" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:12:10" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="39" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:13:15" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="52" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:14:7" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="65" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:15:8" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="90" col="8" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:16:8" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="113" col="6" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:16:8" my-argnr="2" my-argname="end_ptr" file="/home/john/Github/jclibc/src/jcstring.c" line="113" col="21" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:17:5" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="118" col="23" value="0"/>
+  </FileInfo>
+  <FileInfo check="Uninitialized variables">
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/jcstring.c:4:28" my-argnr="1" my-argname="str" file="/home/john/Github/jclibc/src/jcstring.c" line="6" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:10:5" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="13" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:11:14" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="26" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:12:10" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="39" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:13:15" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="52" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:14:7" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="65" col="9" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:15:8" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="90" col="8" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:16:8" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="113" col="6" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:16:8" my-argnr="2" my-argname="end_ptr" file="/home/john/Github/jclibc/src/jcstring.c" line="113" col="21" value="0"/>
+    <unsafe-usage my-id="/home/john/Github/jclibc/src/include/jcstring.h:17:5" my-argnr="1" my-argname="aString" file="/home/john/Github/jclibc/src/jcstring.c" line="118" col="23" value="0"/>
+  </FileInfo>
+  <FileInfo check="CheckUnusedFunctions">
+    <functiondecl functionName="isAsciiDigit" lineNumber="3"/>
+    <functiondecl functionName="skipWhitespace" lineNumber="4"/>
+    <functiondecl functionName="atoi" lineNumber="10"/>
+    <functiondecl functionName="atou" lineNumber="23"/>
+    <functiondecl functionName="atol" lineNumber="36"/>
+    <functiondecl functionName="atoll" lineNumber="49"/>
+    <functiondecl functionName="atof" lineNumber="62"/>
+    <functiondecl functionName="atod" lineNumber="87"/>
+    <functiondecl functionName="strtod" lineNumber="112"/>
+    <functiondecl functionName="strtoi" lineNumber="117"/>
+  </FileInfo>
+</analyzerinfo>

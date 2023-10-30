@@ -1,5 +1,7 @@
-#include <__stddef_size_t.h>
+#include <stddef.h>
 #include <stdio.h>
+
+#include "./include/jcstddef.h"
 
 enum LOG_TYPE {
 	LOG_TO_NONEE,
@@ -11,6 +13,7 @@ enum LOG_TYPE {
 
 enum LOG_LEVEL {
 	LOG_ERROR,
+	LOG_WARN,
 	LOG_DEBUG,
 	LOG_INFO,
 	LOG_NONE,
@@ -19,13 +22,14 @@ enum LOG_LEVEL {
 
 static const char *log_level[LOG_MAX] = {
 	"ERROR",
+	"WARN",
 	"DEBUG",
 	"INFO",
 	""
 };
 
 #define SEVERITY(level) "[" level "]"
-#define LOG(severity, str) do { fprintf(stderr, "[%s] %s:%d: %s\n", severity, __FILE__, __LINE__, str); } while(0)
+#define LOG(severity, str) do { fprintf(stderr, "[%s] %s:%d: %s\n", severity, __FILE__, __LINE__, str); } while (0)
 
 typedef struct logger jclogger;
 struct logger {
@@ -36,7 +40,7 @@ struct logger {
 jclogger jc_log_create(jclogger *const lg, const char *const file_path) {
 	jclogger l;
 	if (file_path) {
-		
+		if (fopen(file_path, "w") < 0) { return *lg; }
 	}
 	return l;
 }
@@ -44,3 +48,5 @@ jclogger jc_log_create(jclogger *const lg, const char *const file_path) {
 void jc_log(const jclogger *const lg, const char *str) {
 	if (lg->level < LOG_NONE) { fprintf(lg->stream, "[%s]: %s:%d: %s\n", log_level[lg->level], __FILE__, __LINE__, str); }
 }
+
+

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<analyzerinfo hash="6512398990149727754">
+        <error id="missingIncludeSystem" severity="information" msg="Include file: &lt;stdio.h&gt; not found. Please note: Cppcheck does not need standard library headers to get proper results." verbose="Include file: &lt;stdio.h&gt; not found. Please note: Cppcheck does not need standard library headers to get proper results.">
+            <location file="src/main.c" line="1" column="0"/>
+        </error>
+        <error id="missingIncludeSystem" severity="information" msg="Include file: &lt;assert.h&gt; not found. Please note: Cppcheck does not need standard library headers to get proper results." verbose="Include file: &lt;assert.h&gt; not found. Please note: Cppcheck does not need standard library headers to get proper results.">
+            <location file="src/main.c" line="2" column="0"/>
+        </error>
+  <FileInfo check="CheckUnusedFunctions">
+    <functiondecl functionName="main" lineNumber="8"/>
+    <functioncall functionName="atod"/>
+    <functioncall functionName="atof"/>
+    <functioncall functionName="atoi"/>
+    <functioncall functionName="atol"/>
+    <functioncall functionName="atoll"/>
+    <functioncall functionName="atou"/>
+    <functioncall functionName="printf"/>
+  </FileInfo>
+</analyzerinfo>
