@@ -398,3 +398,7 @@ FodyWeavers.xsd
 *.sln.iml
 
 ./build/
+./main
+./*.exe
+./*.a
+./*.out
