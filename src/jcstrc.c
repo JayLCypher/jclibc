@@ -221,19 +221,35 @@ double atod(const char s[static 1]) {
 	return is_negative ? -result : result;
 }
 
-double cstr_to_d(const char *const s, const char *const *const end_ptr) {
+static inline enum NUMBER_BASE check_prefix(const char s[static 2]) {
+	if (s[0] != '0') { return BASE_10; }
+	switch (s[1]) {
+		case 'x':
+			#if __STDC__VERSION >= 202311L
+			[[fallthrough]]
+			#endif
+		case 'X': return BASE_16;
+		case 'b': return BASE_2;
+		default: return BASE_8;
+	}
+}
+
+double cstr_to_d(const char *const s, const char *const *const end_ptr, const enum NUMBER_BASE base) {
+	const char *p = s;
+	p = skip_space(p);
 	if (s[0] == *end_ptr[0]) { return 1.0; }
 	return 0.0;
 }
 
-int cstr_to_i(const char *const s, const char *const *const end_ptr) {
-	bool is_negative = (*s == '-');
-	const char *const *ptr = &s + is_negative; // Add 1 if we're negative to bypass the "-" symbol.
+int cstr_to_i(const char *const s, const char *const *const end_ptr, const enum NUMBER_BASE base) {
+	const char *p = s; // Local pointer to string s
+	p = skip_space(p); // Skip whitespace
+	bool is_negative = (*p == '-');
+	p += is_negative || (*p == '+'); // Add 1 if we're negative to bypass the '-' or '+' symbol.
 	int result = 0;
-	while (ptr++ < end_ptr) {
-		const char c = **ptr;
-		if (c < '0' || c > '9') { break; }
-		result = (result * 10) + (c & 0xf);
+	while (p++ < *end_ptr) {
+		if (!is_ascii_digit(*p)) { break; }
+		result = (result * 10) + (*p & 0xf);
 	}
 	return is_negative ? -result : result;
 }
@@ -258,4 +274,20 @@ int cstr_ncmp(const size_t n, const char s1[static n], const char s2[static n]) 
 		
 	}
 	return 0;
+}
+
+const char *cstr_chr(const char s[static 1], const char c) {
+	while (*s++ != '\0') { if (*s == c) { return s; } }
+	return nullptr;
+}
+
+const char *cstr_rchr(const char s[static 1], const char c) {
+	const char *p = nullptr;
+	while (*s++ != '\0') { if (*s == c) { p = s; } }
+	return p;
+}
+
+const char *cstr_rchrr(const char s_start[static 1], const char *s_end, const char c) {
+	while (s_end-- != s_start) { if (*s_end == c) { return s_end; } }
+	return nullptr;
 }

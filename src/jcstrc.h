@@ -7,8 +7,16 @@
 
 #define JCLIBC
 
+enum NUMBER_BASE {
+	BASE_2,
+	BASE_8,
+	BASE_10,
+	BASE_16,
+	BASE_COUNT
+};
+
 constexpr char whitespace[] = { ' ', '\n', '\t', '\0', '\v', '\f', '\r' };
-constexpr size_t whitespace_sz = sizeof (whitespace);
+constexpr size_t whitespace_sz = sizeof (whitespace) / sizeof (whitespace[0]);
 
 typedef struct _string_view string_view;
 struct _string_view {
@@ -30,11 +38,14 @@ float atof(const char[static 1]);
 double atod(const char[static 1]);
 
 // cstr_to_X
-double cstr_to_d(const char *const, const char *const *const);
-int cstr_to_i(const char *const, const char *const *const);
+double cstr_to_d(const char *const, const char *const *const, const enum NUMBER_BASE);
+int cstr_to_i(const char *const, const char *const *const, const enum NUMBER_BASE);
 
 size_t cstr_len(const char *const restrict);
 const char *cstr_ncpy(const size_t n, const char[static n], char[static n]);
 int cstr_ncmp(const size_t n, const char[static n], const char[static n]);
+const char *cstr_chr(const char[static 1], const char);
+const char *cstr_rchr(const char[static 1], const char);
+const char *cstr_rchrr(const char[static 1], const char *, const char);
 
 #endif // _JCSTRC_H_
