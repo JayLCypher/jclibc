@@ -6,6 +6,12 @@
 
 #include <assert.h>
 
+/*
+ * * * * * * * * * * * *
+ * DECLARATION SECTION *
+ * * * * * * * * * * * *
+*/
+
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
 
@@ -38,6 +44,12 @@ typedef unsigned uintptr_t;
 typedef signed intptr_t;
 typedef signed ptrdiff_t;
 #endif
+
+/*
+ * * * * * * * * * * * * * *
+ * IMPLEMENTATION SECTIONS *
+ * * * * * * * * * * * * * *
+*/
 
 #endif // _JCSTDDEF_H_
 

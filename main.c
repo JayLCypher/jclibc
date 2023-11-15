@@ -1,5 +1,4 @@
 // LINT_C_FILE
-#include <limits.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -11,7 +10,7 @@
 
 #ifdef TEST_ALL
 #define TEST_ARGS
-#define TEST_ASCII
+#define TEST_ATO
 #define TEST_STRING
 #define TEST_STRING_VIEW
 #endif
@@ -25,12 +24,12 @@ static int test_args(int *const argc, char **argv[*argc]) {
 	return 0;
 }
 
-static int test_ascii(void) {
+static int test_ato(void) {
 	printf("Testing atoi: ");
 	do {
-		int k = atoi("420kekw");
+		int k = atoi("9420kekw");
 		printf("%d\n", k);
-		if (k != 420) { return -1; }
+		if (k != 9420) { return -1; }
 	} while (0);
 	printf("Testing atou: ");
 	do {
@@ -88,8 +87,8 @@ int main(int argc, char *argv[argc]) {
 	assert(test_args(&argc, &argv) == 0);
 	#endif
 	// Tests all of the functions in the standard library using their test suites.
-	#ifdef TEST_ASCII
-	assert(test_ascii() == 0);
+	#ifdef TEST_ATO
+	assert(test_ato() == 0);
 	#endif
 
 	// String
