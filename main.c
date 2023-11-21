@@ -2,7 +2,11 @@
 #include <stdio.h>
 #include <assert.h>
 
+// JCLIBC DEFINES
+#define JCINTC
+#define JCFLOATC
 // JCLIBC INCLUDES
+#include "./src/jcstddef.h"
 #include "./src/jcstrc.h"
 #include "./src/jcargc.h"
 
