@@ -1,24 +1,30 @@
-// LINT_C_FILE
+//LINT_C_FILE
 #include <assert.h>
 #include <stdio.h>
 
 #include "./jcstrc.h"
 
 static inline bool is_negative(const char c) { return (c == '-'); }
+static inline bool is_positive(const char c) { return (c == '+'); }
 
 // Space functions
 static inline bool is_tab(const char c) { return (c == '\t'); }
 static inline bool is_space(const char c) { return (c == ' '); }
 
-static inline unsigned int count_space(const char s[static 1]) {
-	unsigned int res = 0;
-	while (*s && is_space(*s)) { ++res; }
+static inline size_t count_space(const char s[static 1]) {
+	size_t res = 0;
+	while (*s && is_space(*s)) { ++res; ++s; }
 	return res;
 }
 
 static inline const char *skip_space(const char s[static 1]) {
 	while (*s && is_space(*s)) { ++s; }
 	return s;
+}
+
+static inline const char *skip_space_r(const char s[static 1], const char *end) {
+	while ((end != s) && is_space(*end)) { end--; }
+	return end;
 }
 
 // Whitespace, which includes space, tab, null, carriage etc.
@@ -51,13 +57,6 @@ static inline bool is_ascii_dec(const char c) { return !(c > '9' || c < '0'); }
 static inline bool is_ascii_hex(const char c) { return !(is_ascii_dec(c) || (c > 'F' || c < 'A') || (c > 'f' || c < 'a')); }
 static inline bool is_ascii_vig(const char c) { return !(is_ascii_dec(c) || (c > 'K' || c < 'A') || (c > 'k' || c < 'a')); }
 
-typedef struct _string string;
-struct _string {
-	size_t len;
-	const char *s;
-};
-static_assert(sizeof (string) == 16, "Wrong size of string!");
-
 typedef struct _fixed_string fixed_string;
 struct _fixed_string {
 	size_t len;
@@ -66,218 +65,210 @@ struct _fixed_string {
 static_assert(sizeof (fixed_string) == 16, "Wrong size of fixed string!");
 
 typedef union {
-	const char ss[sizeof (char*) + sizeof (size_t)];
+	char ss[sizeof (char*) + sizeof (size_t)];
 	struct {
 		size_t len_sf;
-		const char sf[sizeof (char*)];
+		char sf[sizeof (char*)];
 	};
 	struct {
 		size_t len;
-		union {
-			char *s;
-			const char *cs;
-			const char *const csc;
-		};
+		char *s;
 	};
 } stdstring;
 static_assert(sizeof (stdstring) == 16, "stdstring wrong size.");
 
-static string string_new(const size_t len, const char s[len]) {
-	string str = {len, s};
-	return str;
+static string *string_init(string *s, const size_t len, char *cstr) {
+	if (s) { *s = (string){len, cstr}; }
+	return s;
 }
 
-static string string_copy(const string *const s) {
-	return string_new(s->len, s->s);
+static string string_copy(const string *s) {
+	return *string_init(&(string){0}, s->len, s->s);
+}
+
+string *string_trim_whitespace_left(string *s) {
+	while (*s->s++ && is_space(*s->s)) { s->len--; }
+	return s;
+}
+
+string *string_trim_whitespace_right(string *s) {
+	while (*s->s+s->len && is_space(*s->s+s->len)) { s->len--; }
+	return s;
+}
+
+string *string_trim_whitespace(string *s) {
+	return string_trim_whitespace_right(string_trim_whitespace_left(s));
 }
 
 // STRING_VIEW STUFF
-static string_view *sv_init(string_view *sv) {
-	if (sv) { *sv = (string_view){0}; }
-	return sv;
-}
-
 static string_view sv_new(const size_t count, const char *s) {
 	return (string_view) {.count = count, .s = s};
 }
 
-static string_view sv_new_empty(void) {
-	string_view sv = {0};
-	return sv;
+// Count spaces on the left of string view and return a new sliced view copy.
+string_view sv_trim_whitespace_left(const string_view *sv) {
+	size_t count = count_space(sv->s);
+	return (string_view) { sv->count - count, sv->s + count };
 }
 
-string_view *sv_trim_whitespace_left(string_view *const sv) {
-	while (*sv->s == ' ' && sv->count > 0) { sv->s++; sv->count--;}
-	return sv;
+string_view sv_trim_whitespace_right(const string_view *sv) {
+	return (string_view) { sv->count - (skip_space_r(sv->s, sv->s + sv->count) - sv->s), sv->s };
 }
 
-string_view *sv_trim_whitespace_right(string_view *const sv) {
-	for (const char *c = sv->s+sv->count; sv->count > 0; sv->count--) { if (*c != ' ') { break; } }
-	return sv;
-}
-
-string_view *sv_trim_whitespace(string_view *const sv) {
-	return sv_trim_whitespace_right(sv_trim_whitespace_left(sv));
+string_view sv_trim_whitespace(const string_view *sv) {
+	string_view s_l = sv_trim_whitespace_left(sv);
+	string_view s_r = sv_trim_whitespace_right(sv);
+	return (string_view) {s_l.s - s_r.s, s_l.s};
 }
 
 bool sv_eq(const string_view *sv_a, const string_view *sv_b) {
 	if (sv_a->count != sv_b->count) { return false; }
 	const char *a = sv_a->s, *b = sv_b->s;
-	while (*a++ && *b++) { if (*a != *b) { return false; } }
+	for (; *a && *b; ++a, ++b) { if (*a != *b) { return false; } }
 	return true;
 }
 
-void sv_print(string_view *const sv) {
-	printf("%.*s\n", (int)sv->count, sv->s);
+void sv_print(const string_view *sv) {
+	printf("%.*s\n%zu\n", (int)sv->count, sv->s, sv->count);
 }
 
-#define ato_resolve(base) result = (result * base) + (c & 0xF)
+#define ATO_OFFSET 0xF
+#define ato_r(res, c, base) do { res = (res * base) + (c & ATO_OFFSET) } while (0)
 
 int atoi(const char s[static 1]) {
+	if ((s = skip_space(s)) == nullptr) { return 0; }
+	bool is_negative = (*s == '-');
+	if (*(s += is_negative) == '+') { ++s; }
 	int result = 0;
-	size_t i = 0;
-	while (s[i] == ' ') { ++i; }
-	bool is_negative = (s[i] == '-');
-	for (i += is_negative || s[i] == '+';; ++i) {
-		const char c = s[i];
-		if (!is_ascii_dec(c)) { break; } // Check > 9 to short-stroke because statistically that's more likely.
-		result = (result * 10) + (c & 0xF);
-	}
+	for (; *s && is_ascii_dec(*s); ++s) { result = (result * 10) + (*s & ATO_OFFSET); }
 	return is_negative ? -result : result;
 }
 
-unsigned int atou(const char s[static 1]) {
-	unsigned int result = 0;
-	size_t i = 0;
-	for (; s[i] == ' '; ++i) {}
-	for (i += (s[i] == '+');; ++i) {
-		const char c = s[i];
-		if (!is_ascii_dec(c)) { break; } // Check > 9 to short-stroke because statistically that's more likely.
-		result = (result * 10) + (c & 0xF);
-	}
+unsigned atou(const char s[static 1]) {
+	if ((s = skip_space(s)) == nullptr) { return 0; }
+	if (*s == '+' || *s == '-') { ++s; }
+	unsigned result = 0;
+	for (; *s && is_ascii_dec(*s); ++s) { result = (result * 10) + (*s & ATO_OFFSET); }
 	return result;
 }
 
-long int atol(const char s[static 1]) {
-	long int result = 0;
-	size_t i = 0;
-	for (; s[i] == ' '; ++i) {}
-	bool is_negative = (s[i] == '-');
-	for (i += is_negative || s[i] == '+';; ++i) {
-		const char c = s[i];
-		if (!is_ascii_dec(c)) { break; } // Check > 9 to short-stroke because statistically that's more likely.
-		result = (result * 10) + (c & 0xF);
-	}
+long atol(const char s[static 1]) {
+	if ((s = skip_space(s)) == nullptr) { return 0; }
+	bool is_negative = (*s == '-');
+	if (*(s += is_negative) == '+') { ++s; }
+	long result = 0;
+	for (; *s && is_ascii_dec(*s); ++s) { result = (result * 10) + (*s & ATO_OFFSET); }
 	return is_negative ? -result : result;
 }
 
-long long int atoll(const char s[static 1]) {
-	long long int result = 0;
-	size_t i = 0;
-	for (; s[i] == ' '; ++i) {}
-	bool is_negative = (s[i] == '-');
-	for (i += is_negative || s[i] == '+';; ++i) {
-		const char c = s[i];
-		if (!is_ascii_dec(c)) { break; } // Check > 9 to short-stroke because statistically that's more likely.
-		result = (result * 10) + (c & 0xF);
-	}
+long long atoll(const char s[static 1]) {
+	if ((s = skip_space(s)) == nullptr) { return 0; }
+	bool is_negative = (*s == '-');
+	if (*(s += is_negative) == '+') { ++s; }
+	long long result = 0;
+	for (; *s && is_ascii_dec(*s); s++) { result = (result * 10) + (*s & ATO_OFFSET); }
 	return is_negative ? -result : result;
 }
 
 float atof(const char s[static 1]) {
+	if ((s = skip_space(s)) == nullptr) { return 0.0f; }
+	bool is_negative = (*s == '-');
+	if (*(s += is_negative) == '+') { ++s; }
+	size_t pre_dot = 0;
+	for (; *s && is_ascii_dec(*s) && *s != '.'; ++s) { pre_dot = (pre_dot * 10) + (*s & ATO_OFFSET); }
 	float result = 0.0f;
-	size_t i = 0;
-	for (; s[i] == ' '; ++i) {}
-	bool is_negative = (s[i] == '-');
-	unsigned int pre_dot = 0;
-	for (i += is_negative || s[i] == '+';; ++i) {
-		const char c = s[i];
-		if (!is_ascii_dec(c)) { break; }
-		pre_dot = (pre_dot * 10) + (c & 0xF);
-	}
-	if (s[i] == '.') {
-		unsigned int n = 0, post_dot = 0;
-		for (i += 1;; ++n, ++i) {
-			const char c = s[i];
-			if (!is_ascii_dec(c)) { break; }
-			post_dot = (post_dot * 10) + (c & 0xF);
-		}
+	if (*s == '.') {
+		size_t i = 0, post_dot = 0;
+		for (++s; *s && is_ascii_dec(*s); ++i, ++s) { post_dot = (post_dot * 10) + (*s & ATO_OFFSET); }
 		result = post_dot;
-		for (; n > 0; --n) { result /= 10; }
+		for (; i > 0; --i) { result /= 10; }
 	}
 	result += pre_dot;
 	return is_negative ? -result : result;
 }
 
 double atod(const char s[static 1]) {
+	if ((s = skip_space(s)) == nullptr) { return 0.0f; }
+	bool is_negative = (*s == '-');
+	if (*(s += is_negative) == '+') { ++s; }
+	size_t pre_dot = 0;
+	for (; *s && is_ascii_dec(*s) && *s != '.'; ++s) { pre_dot = (pre_dot * 10) + (*s & ATO_OFFSET); }
 	double result = 0.0f;
-	size_t i = 0;
-	for (; s[i] == ' '; ++i) {}
-	bool is_negative = (s[0] == '-');
-	unsigned int pre_dot = 0;
-	for (i += is_negative || s[i] == '+';; ++i) {
-		const char c = s[i];
-		if (!is_ascii_dec(c)) { break; }
-		pre_dot = (pre_dot * 10) + (c & 0xF);
-	}
-	if (s[i] == '.') {
-		unsigned int n = 0, post_dot = 0;
-		for (i += 1;; ++n, ++i) {
-			const char c = s[i];
-			if (!is_ascii_dec(c)) { break; }
-			post_dot = (post_dot * 10) + (c & 0xF);
-		}
+	if (*s == '.') {
+		size_t i = 0, post_dot = 0;
+		for (++s; *s && is_ascii_dec(*s); ++i, ++s) { post_dot = (post_dot * 10) + (*s & ATO_OFFSET); }
 		result = post_dot;
-		for (; n > 0; --n) { result /= 10; }
+		for (; i > 0; --i) { result /= 10; }
 	}
 	result += pre_dot;
 	return is_negative ? -result : result;
 }
 
-static inline enum NUMBER_BASE check_prefix(const char s[static 2]) {
-	if (s[0] != '0') { return BASE_10; }
-	switch (s[1]) {
-		case 'x':
+static inline unsigned int check_prefix(const char s[static 2]) {
+	if (s[0] == '0') {
+		switch (s[1]) {
+			case 'x':
 			#if __STDC__VERSION >= 202311L
 			[[fallthrough]]
 			#endif
-		case 'X': return BASE_16;
-		case 'b': return BASE_2;
-		default: return BASE_8;
+			case 'X': return 16;
+			case 'b': return 2;
+			default: return 8;
+		}
 	}
+	else if (is_ascii_dec(s[0])) { return 10; }
+	return 0;
 }
 
-double cstr_to_d(const char *const s, const char *const *const end_ptr, const enum NUMBER_BASE base) {
-	const char *p = s;
-	p = skip_space(p);
-	if (s[0] == *end_ptr[0]) { return 1.0; }
-	return 0.0;
-}
-
-int cstr_to_i(const char *const s, const char *const *const end_ptr, const unsigned base) {
-	const char *p = s; // Local pointer to string s
-	p = skip_space(p); // Skip whitespace
-	bool is_negative = (*p == '-');
-	p += is_negative || (*p == '+'); // Add 1 if we're negative to bypass the '-' or '+' symbol.
+int cstr_to_i(const char s[static 2], const char **end_ptr, unsigned base) {
+	if ((s = skip_space(s)) == nullptr) { return 0; } // Skip whitespace
+	if (base == 0) {
+		base = check_prefix(s);
+		switch (base) {
+			case 16:
+			#if __STDC__VERSION >= 202311L
+			[[fallthrough]]
+			#endif
+			case 2: s += 2; break;
+			case 8: s++; break;
+			default: break;
+		}
+		if (base == 0) { return 0; }
+	}
+	bool is_negative = (*s == '-');
+	if (*(s += is_negative) == '+') { s++; } // Bypass - and +
 	int result = 0;
-	while (p++ < *end_ptr) {
-		if (!is_ascii_dec(*p)) { break; }
-		result = (result * base) + (*p & 0xF);
-	}
+	for (;*s && is_ascii_dec(*s); ++s) { result = (result * base) + (*s & 0xF); }
+	if (*(s + 1)) { *end_ptr = s; }
 	return is_negative ? -result : result;
 }
 
-size_t cstr_len(const char *const restrict s) {
-	const char *p = s;
-	while (*p++) {}
-	return (p - s - 1);
+double cstr_to_d(const char s[static 2], const char **end_ptr, unsigned base) {
+	s = skip_space(s);
+	double res = 0.0;
+	if (base == 0) {
+		base = check_prefix(s);
+		switch (base) {
+			case 16:
+			#if __STDC__VERSION >= 202311L
+			[[fallthrough]]
+			#endif
+			case 2: s += 2; break;
+			case 8: s++; break;
+			default: break;
+		}
+		if (base == 0) { return 0; }
+	}
+	return res;
 }
 
 // Get an end pointer to NULL-terminated c style string.
-const char *cstr_end(const char s[static 1]) {
-	while (*s++) {}
+inline const char *cstr_end(const char s[static 1]) {
+	while (*s++) continue;
 	return s;
 }
+
+inline size_t cstr_len(const char s[static 1]) { return cstr_end(s) - s - 1; }
 
 // Copy no more than N characters from s to buf. Make sure buf can hold len.
 const char *cstr_ncpy(const size_t n, const char s_in[static n], char buf_out[static n]) {
@@ -287,22 +278,18 @@ const char *cstr_ncpy(const size_t n, const char s_in[static n], char buf_out[st
 }
 
 int cstr_ncmp(const size_t n, const char s1[static n], const char s2[static n]) {
-	const char *a = &s1[0], *b = &s2[0];
-	size_t count = 0;
-	while (*a && *b && (n > count++)) {
-		
-	}
+	for (size_t i = 0; i < n; ++i) { if (s1[i] != s2[i]) { return s1[i] - s2[i]; } }
 	return 0;
 }
 
 const char *cstr_chr(const char s[static 1], const char c) {
-	while (*s++ != '\0') { if (*s == c) { return s; } }
-	return s; // Returns the end of the string, in case that's useful.
+	while (*s++) { if (*s == c) { return s; } }
+	return nullptr;
 }
 
 const char *cstr_rchr(const char s[static 1], const char c) {
 	const char *p = nullptr;
-	while (*s++ != '\0') { if (*s == c) { p = s; } }
+	while (*s++) { if (*s == c) { p = s; } }
 	return p;
 }
 

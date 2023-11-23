@@ -1,7 +1,9 @@
-// LINT_C_FILE
+//LINT_C_FILE
 #pragma once
 #ifndef _JCSTRC_H_
 #define _JCSTRC_H_
+
+#include <assert.h>
 
 //#define JCLIBC
 #include "./jcstddef.h"
@@ -12,28 +14,31 @@
  * * * * * * * * * * * *
 */
 
-enum NUMBER_BASE {
-	BASE_2,
-	BASE_8,
-	BASE_10,
-	BASE_16,
-	BASE_COUNT
-};
-
 constexpr char whitespace[] = { ' ', '\n', '\t', '\0', '\v', '\f', '\r' };
 constexpr size_t whitespace_sz = sizeof (whitespace) / sizeof (whitespace[0]);
 
+typedef struct _string string;
+struct _string {
+	size_t len;
+	char *s;
+};
+static_assert(sizeof (string) == 16, "Wrong size of string!");
+
+string *string_trim_whitespace_left(string *string);
+string *string_trim_whitespace_right(string *s);
+string *string_trim_whitespace(string *s);
+
 typedef struct _string_view string_view;
 struct _string_view {
-	size_t count;
+	const size_t count;
 	const char *s;
 };
 
-void sv_print(string_view *const);
+void sv_print(const string_view *);
 
-string_view *sv_trim_whitespace_left(string_view *const);
-string_view *sv_trim_whitespace_right(string_view *const);
-string_view *sv_trim_whitespace(string_view *const);
+string_view sv_trim_whitespace_left(const string_view *);
+string_view sv_trim_whitespace_right(const string_view *);
+string_view sv_trim_whitespace(const string_view *);
 
 bool sv_eq(const string_view *, const string_view *);
 
@@ -45,10 +50,10 @@ float atof(const char[static 1]);
 double atod(const char[static 1]);
 
 // cstr_to_X
-double cstr_to_d(const char *const, const char *const *const, const enum NUMBER_BASE);
-int cstr_to_i(const char *const, const char *const *const, const enum NUMBER_BASE);
+double cstr_to_d(const char[static 2], const char **, const unsigned);
+int cstr_to_i(const char[static 2], const char **, const unsigned);
 
-size_t cstr_len(const char *const restrict);
+size_t cstr_len(const char[static 1]);
 const char *cstr_end(const char[static 1]);
 const char *cstr_ncpy(const size_t n, const char[static n], char[static n]);
 int cstr_ncmp(const size_t n, const char[static n], const char[static n]);

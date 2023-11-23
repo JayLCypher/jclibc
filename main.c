@@ -31,13 +31,13 @@ static int test_args(int *const argc, char **argv[*argc]) {
 static int test_ato(void) {
 	printf("Testing atoi: ");
 	do {
-		int k = atoi("9420kekw");
+		int k = atoi(" 9420kekw");
 		printf("%d\n", k);
 		if (k != 9420) { return -1; }
 	} while (0);
 	printf("Testing atou: ");
 	do {
-		unsigned int k = atou("1590437432kekek");
+		unsigned k = atou("+1590437432kekek");
 		printf("atou: %u\n", k);
 		if (k != 1590437432) { return -1; }
 	} while (0);
@@ -57,13 +57,25 @@ static int test_ato(void) {
 	do {
 		float k = atof("-4.223239238f");
 		printf("atof: %9.6f\n", (double)k);
-		if (k > -4.223238f && k < -4.223240f) { return -1; }
+		if (k > -4.223238f || k < -4.223240f) { return -1; }
 	} while (0);
 	printf("Testing atod: ");
 	do {
 		double k = atod("-565995.223239238dw");
 		printf("atod: %f\n", k);
-		if (k > -565995.223239230 && k < -565995.22323924) { return -1; }
+		if (k > -565995.223239230 || k < -565995.22323924) { return -1; }
+	} while (0);
+	printf("Testing cstr_to_i:\n\t");
+	do {
+		const char p[] = "10 200000000000000000000000000000 30 -40 junk";
+		const char *p_ptr = &p[0], *end = nullptr;
+		int k = 0;
+		for (size_t i = 0; i < 20; ++i) {
+			k = cstr_to_i(p_ptr, &end, 10);
+			printf("Pass %zu: k = %d\n\t", i, k);
+			if (p_ptr == end) { break; }
+			p_ptr = end;
+		}
 	} while (0);
 	return 0;
 }
@@ -79,10 +91,9 @@ static int test_string(void) {
 static int test_string_view(void) {
 	string_view sv = { 10, "   hello  " };
 	sv_print(&sv);
-	sv_trim_whitespace(&sv);
-	if (cstr_ncmp(sv.count, sv.s, "hello") != 0) { return -1; }
-	sv_print(&sv);
-	return 0;
+	string_view sv2 = sv_trim_whitespace(&sv);
+	sv_print(&sv2);
+	return cstr_ncmp(sv2.count, sv2.s, "hello");
 }
 
 int main(int argc, char *argv[argc]) {
