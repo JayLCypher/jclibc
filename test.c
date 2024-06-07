@@ -1,14 +1,7 @@
-// LINT_C_FILE
-#include <stdio.h>
-#include <assert.h>
 
-// JCLIBC DEFINES
-#define JCINTC
-#define JCFLOATC
-// JCLIBC INCLUDES
-#include "./src/jcstddef.h"
-#include "./src/jcstrc.h"
-#include "./src/jcargc.h"
+#include <jclibc/stddef.h>
+#include <jclibc/stdint.h>
+#include <jclibc/stdargs.h>
 
 #define TEST_ALL
 
@@ -17,13 +10,14 @@
 #define TEST_ATO
 #define TEST_STRING
 #define TEST_STRING_VIEW
+#define TEST_STRING_LEN
 #endif
 
 static int test_args(int *const argc, char **argv[*argc]) {
 	int argc_len = *argc;
 	for (int i = 0; i < argc_len; ++i) {
 		if (argc_len - i != *argc) { return -1; }
-		printf("Argument [%d]: %s | Argc: %d\n", i, pop_argv(argc, argv), *argc);
+		printf("Argument [%d]: %s | Argc: %d\n", i, std_args_shr(argc, argv), *argc);
 	}
 	return 0;
 }
@@ -85,7 +79,30 @@ static int test_string(void) {
 	const size_t len = cstr_len(s);
 	printf("%s is length %zu and my len without null is %zu\n", s, sizeof s, len);
 	if (len != sizeof s - 1) { return -1; }
+
+	string_view sv = {sizeof s, s};
+	//string jcstr1 = string_from_sv(&sv);
+	// String format
+	//string jcstr = string_from_cstr("hello mom!");
+
 	return 0;
+}
+
+#include <string.h>
+static int test_string_len(void) {
+	const char kek[100000] = {[0 ... 99998] = 'c'};
+	struct timespec t1 = {0}, t2 = {0};
+	clock_gettime(0, &t1);
+	size_t a = strlen(kek);
+	clock_gettime(0, &t2);
+	long double t = (t2.tv_nsec - t1.tv_nsec);
+	printf("Library strlen got %zu in %.0Lf nsecs\n", a, t);
+	clock_gettime(0, &t1);
+	size_t b = cstr_len(kek);
+	clock_gettime(0, &t2);
+	t = (t2.tv_nsec - t1.tv_nsec);
+	printf("cstr_len got %zu in %.0Lf nsecs\n", b, t);
+	return (a == b);
 }
 
 static int test_string_view(void) {
@@ -114,6 +131,10 @@ int main(int argc, char *argv[argc]) {
 	// String_View_Test
 	#ifdef TEST_STRING_VIEW
 	assert(test_string_view() == 0);
+	#endif
+
+	#ifdef TEST_STRING_LEN
+	assert(test_string_len() == 0);
 	#endif
 
 	printf("All tests succeeeded!\n");

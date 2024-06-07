@@ -1,35 +1,29 @@
+//LINT_C_FILE
+#include <stdlib.h>
+#include "./jchashmapc.h"
 
-#include "./include/jchashmap.h"
 
-// Stolen from: https://theartincode.stanis.me/008-djb2/
-// Written by Daniel J. Bernstein (DJB) in 1991
-static unsigned int djb2_hash(const unsigned char *const str) {
-	unsigned int hash = 5381;
-	for (unsigned char c = *str++; *str; c = *str++) {
-		hash = ((hash << 5) + hash) + c; // Hash * 33 + c;
-	}
-	return hash;
+
+// HASH_MAP
+static map map_grow(map *m) {
+	m->buckets = realloc(m->buckets, sizeof (hash_item) * m->capactity * m->capactity);
 }
 
-static unsigned int sbdm_hash(const unsigned char *const str) {
-	unsigned int hash = 0;
-	for (unsigned char c = *str++; *str; c = *str++) {
-		hash = c + (hash << 6) + (hash << 16) - hash;
-	}
-	return hash;
-}
-
-static map *map_init(map * const m) {
+static map *map_init(map *m) {
 	if (m) { *m = (map){0}; }
 	return m;
 }
 
-map map_new() {
-	return *map_init(&(map){0});
+map map_new() { return *map_init(&(map){0}); }
+
+void map_insert(map *m, hash_item item) {
+	if (m->count + 1 >= m->capactity) { map_grow(m); }
 }
+
 
 
 int main(void) {
 	const char file_path[] = "hashmap_test.txt";
+
 	return 0;
 }
